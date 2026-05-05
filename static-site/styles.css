@@ -350,7 +350,7 @@ a {
 .education {
   position: relative;
   width: 100%;
-  min-height: 3600px;
+  min-height: 5200px;
   background: var(--background);
 }
 
@@ -405,10 +405,12 @@ a {
   left: 673px;
   width: calc(100% - 701px);
   height: 528px;
+  overflow: hidden;
 }
 
 .education-item {
   position: absolute;
+  top: 0;
   left: 0;
   z-index: 1;
   width: 100%;
@@ -416,9 +418,11 @@ a {
   overflow: hidden;
   border-radius: 12px;
   background: #ffffff;
+  border: 1px solid rgba(35, 55, 70, 0.045);
+  box-shadow: 0 14px 34px rgba(35, 55, 70, 0.075);
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
 
@@ -518,18 +522,16 @@ a {
   content: '';
   position: absolute;
   right: -48px;
-  top: 238px;
+  top: 310px;
   width: calc(100% - 625px);
-  height: 340px;
+  height: 260px;
   z-index: 5;
   background: linear-gradient(
     180deg,
     rgba(242, 242, 242, 0) 0%,
-    rgba(242, 242, 242, 0.28) 18%,
-    rgba(242, 242, 242, 0.78) 52%,
+    rgba(242, 242, 242, 0.46) 52%,
     #f2f2f2 100%
   );
-  backdrop-filter: blur(9px);
   transform: translateZ(0);
   will-change: transform;
   -webkit-mask-image:
