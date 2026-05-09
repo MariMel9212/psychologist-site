@@ -97,8 +97,11 @@ function syncEducationCards() {
   }
 
   if (!educationLocked && !educationCompleted) {
-    const animationDistance = Math.max(lockPoint.stickyEnd - lockPoint.stickyStart, 1);
-    educationTargetProgress = clamp((window.scrollY - lockPoint.stickyStart) / animationDistance);
+    educationTargetProgress = 0;
+  }
+
+  if (educationCompleted) {
+    educationTargetProgress = 1;
   }
 
   startEducationSmoothing();
@@ -188,11 +191,29 @@ function syncLayout() {
   syncEducationCards();
 }
 
-window.addEventListener('load', () => {
-  window.scrollTo(0, 0);
+function stabilizeLayout(shouldResetScroll = false) {
+  if (shouldResetScroll) {
+    window.scrollTo(0, 0);
+  }
+
   syncLayout();
+
+  requestAnimationFrame(() => {
+    syncLayout();
+
+    requestAnimationFrame(syncLayout);
+  });
+}
+
+window.addEventListener('load', () => {
+  stabilizeLayout(true);
 });
+
+if (document.fonts) {
+  document.fonts.ready.then(() => stabilizeLayout(false));
+}
+
 window.addEventListener('resize', syncLayout);
 window.addEventListener('scroll', syncEducationCards, { passive: true });
 window.addEventListener('wheel', handleEducationWheel, { passive: false });
-syncLayout();
+requestAnimationFrame(syncLayout);
