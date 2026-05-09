@@ -373,6 +373,18 @@ a {
   backface-visibility: hidden;
 }
 
+.education-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(var(--site-margin) * -1);
+  z-index: 20;
+  width: 100vw;
+  height: 1px;
+  background: #ff3b30;
+  pointer-events: none;
+}
+
 .education-copy h2 {
   position: absolute;
   top: 32px;
