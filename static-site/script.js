@@ -32,6 +32,7 @@ const educationOverlap = 0.08;
 const educationStackGap = 44;
 const educationHiddenY = 300;
 const educationLockOffset = 70;
+const educationScrollScene = 2200;
 
 function getEducationLockPoint() {
   const education = document.querySelector('.education');
@@ -48,7 +49,7 @@ function getEducationLockPoint() {
     education,
     educationCard,
     stickyStart: education.offsetTop + educationCard.offsetTop - viewportCenterTop,
-    stickyEnd: education.offsetTop + education.offsetHeight - window.innerHeight,
+    stickyEnd: education.offsetTop + educationCard.offsetTop - viewportCenterTop + educationScrollScene,
   };
 }
 
