@@ -133,21 +133,20 @@ function syncStatsScene() {
 
 function handleStatsWheel(event) {
   const stats = document.querySelector('.stats');
+  const scene = document.querySelector('.stats-scene');
 
-  if (!stats || window.innerWidth <= 860) {
+  if (!stats || !scene || window.innerWidth <= 860) {
     return;
   }
 
   const delta = event.deltaY;
-  const statsStart = stats.offsetTop;
+  const sceneRect = scene.getBoundingClientRect();
   
-  // Lock triggers when scrollY reaches or passes the section start,
-  // before the section ends, and if the animation isn't completed.
-  const isScrollPastStart = window.scrollY >= statsStart - 15;
-  const isScrollBeforeEnd = window.scrollY < statsStart + stats.offsetHeight - window.innerHeight;
-  const isEnteringLock = delta > 0 && isScrollPastStart && isScrollBeforeEnd && !statsCompleted;
+  // Lock triggers when stats-scene (sticky block) hits the top of the viewport
+  const isSceneCentered = sceneRect.top <= 20;
+  const isEnteringLock = delta > 0 && isSceneCentered && statsTargetProgress < 1;
   const isLeavingBack = delta < 0 && statsLocked && statsTargetProgress <= 0;
-  const shouldControlAnimation = statsLocked || isEnteringLock;
+  const shouldControlAnimation = !statsCompleted && (statsLocked || isEnteringLock);
 
   if (!shouldControlAnimation || isLeavingBack) {
     if (isLeavingBack) {
@@ -161,7 +160,6 @@ function handleStatsWheel(event) {
 
   if (!statsLocked) {
     statsLocked = true;
-    statsLockScrollY = statsStart;
     statsTargetProgress = statsProgress;
 
     if (statsAnimationFrame) {
@@ -170,16 +168,12 @@ function handleStatsWheel(event) {
     }
   }
 
-  window.scrollTo(0, statsLockScrollY);
-
   statsTargetProgress = clamp(statsTargetProgress + delta / 1800);
   startStatsSmoothing();
 
   if (statsTargetProgress >= 1 && delta > 0 && statsProgress > 0.995) {
     statsLocked = false;
     statsCompleted = true;
-    // Push scroll slightly down to let natural scroll takeover
-    window.scrollTo(0, statsLockScrollY + 20);
   }
 }
 
