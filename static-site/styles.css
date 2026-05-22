@@ -691,6 +691,8 @@ a {
   position: relative;
   min-height: 280vh;
   background: var(--background);
+  outline: 2px solid #0055ff;
+  outline-offset: -2px;
 }
 
 .stats-scene {
