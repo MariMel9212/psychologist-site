@@ -704,7 +704,7 @@ a {
 .stats-photo-wrap {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: calc(50% + 30px);
   z-index: 4;
   width: var(--stats-photo-width, 286px);
   height: var(--stats-photo-height, 154px);
@@ -767,24 +767,24 @@ a {
 
 .stats-fact-1 {
   left: 70px;
-  top: 12vh;
+  top: calc(12vh + 30px);
 }
 
 .stats-fact-2 {
   right: 58px;
-  top: 17vh;
+  top: calc(17vh + 30px);
   width: 292px;
 }
 
 .stats-fact-3 {
   left: 92px;
-  bottom: 12vh;
+  bottom: calc(12vh - 30px);
   width: 300px;
 }
 
 .stats-fact-4 {
   right: 275px;
-  bottom: 18vh;
+  bottom: calc(18vh - 30px);
   width: 304px;
 }
 
