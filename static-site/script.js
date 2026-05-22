@@ -33,6 +33,184 @@ const educationStackGap = 44;
 const educationHiddenY = 300;
 const educationLockOffset = 70;
 const educationScrollScene = 2200;
+let statsProgress = 0;
+let statsTargetProgress = 0;
+let statsAnimationFrame = null;
+let statsLocked = false;
+let statsCompleted = false;
+let statsLockScrollY = 0;
+
+function renderStatsScene(progress) {
+  const photo = document.querySelector('.stats-photo-wrap');
+  const facts = Array.from(document.querySelectorAll('.stats-fact'));
+
+  if (!photo || !facts.length) {
+    return;
+  }
+
+  const photoProgress = easeInOutQuart(clamp((progress - 0.62) / 0.38));
+  const startWidth = 286;
+  const startHeight = 154;
+  const endWidth = window.innerWidth;
+  const endHeight = window.innerHeight;
+  const width = startWidth + ((endWidth - startWidth) * photoProgress);
+  const height = startHeight + ((endHeight - startHeight) * photoProgress);
+  const radius = 18 * (1 - photoProgress);
+  const shadow = 0.12 * (1 - photoProgress);
+
+  photo.style.setProperty('--stats-photo-width', `${width.toFixed(1)}px`);
+  photo.style.setProperty('--stats-photo-height', `${height.toFixed(1)}px`);
+  photo.style.setProperty('--stats-photo-radius', `${radius.toFixed(1)}px`);
+  photo.style.setProperty('--stats-photo-shadow', shadow.toFixed(3));
+
+  facts.forEach((fact, index) => {
+    const start = 0.10 + (index * 0.10);
+    const end = start + 0.18;
+    const factProgress = clamp((progress - start) / (end - start));
+    const opacity = easeOutQuint(factProgress);
+    const y = 32 - (32 * easeOutQuint(factProgress));
+    const scale = 0.96 + (0.04 * easeOutQuint(factProgress));
+
+    fact.style.setProperty('--fact-opacity', opacity.toFixed(3));
+    fact.style.setProperty('--fact-y', `${y.toFixed(1)}px`);
+    fact.style.setProperty('--fact-scale', scale.toFixed(3));
+  });
+}
+
+function syncStatsScene() {
+  const stats = document.querySelector('.stats');
+
+  if (!stats) {
+    return;
+  }
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.innerWidth <= 860) {
+    const photo = document.querySelector('.stats-photo-wrap');
+    const facts = Array.from(document.querySelectorAll('.stats-fact'));
+    if (photo && facts.length) {
+      photo.style.setProperty('--stats-photo-width', '100%');
+      photo.style.setProperty('--stats-photo-height', '260px');
+      photo.style.setProperty('--stats-photo-radius', '0px');
+      photo.style.setProperty('--stats-photo-shadow', '0.12');
+      facts.forEach((fact) => {
+        fact.style.setProperty('--fact-opacity', 1);
+        fact.style.setProperty('--fact-y', '0px');
+        fact.style.setProperty('--fact-scale', 1);
+      });
+    }
+    return;
+  }
+
+  const statsStart = stats.offsetTop;
+
+  // Reset states if scrolled back up above the section
+  if (window.scrollY < statsStart - 100) {
+    statsCompleted = false;
+    statsLocked = false;
+    statsProgress = 0;
+    statsTargetProgress = 0;
+    renderStatsScene(0);
+    return;
+  }
+
+  if (!statsLocked && !statsCompleted) {
+    const rect = stats.getBoundingClientRect();
+    if (rect.top > 0) {
+      statsProgress = 0;
+      renderStatsScene(0);
+    } else {
+      const scrollRange = stats.offsetHeight - window.innerHeight;
+      const progress = clamp(-rect.top / scrollRange);
+      statsProgress = progress;
+      renderStatsScene(progress);
+    }
+  }
+
+  if (statsCompleted) {
+    renderStatsScene(1);
+  }
+}
+
+function handleStatsWheel(event) {
+  const stats = document.querySelector('.stats');
+
+  if (!stats || window.innerWidth <= 860) {
+    return;
+  }
+
+  const delta = event.deltaY;
+  const statsStart = stats.offsetTop;
+  
+  // Lock triggers when scrollY reaches or passes the section start,
+  // before the section ends, and if the animation isn't completed.
+  const isScrollPastStart = window.scrollY >= statsStart - 15;
+  const isScrollBeforeEnd = window.scrollY < statsStart + stats.offsetHeight - window.innerHeight;
+  const isEnteringLock = delta > 0 && isScrollPastStart && isScrollBeforeEnd && !statsCompleted;
+  const isLeavingBack = delta < 0 && statsLocked && statsTargetProgress <= 0;
+  const shouldControlAnimation = statsLocked || isEnteringLock;
+
+  if (!shouldControlAnimation || isLeavingBack) {
+    if (isLeavingBack) {
+      statsLocked = false;
+      statsCompleted = false;
+    }
+    return;
+  }
+
+  event.preventDefault();
+
+  if (!statsLocked) {
+    statsLocked = true;
+    statsLockScrollY = statsStart;
+    statsTargetProgress = statsProgress;
+
+    if (statsAnimationFrame) {
+      cancelAnimationFrame(statsAnimationFrame);
+      statsAnimationFrame = null;
+    }
+  }
+
+  window.scrollTo(0, statsLockScrollY);
+
+  statsTargetProgress = clamp(statsTargetProgress + delta / 1800);
+  startStatsSmoothing();
+
+  if (statsTargetProgress >= 1 && delta > 0 && statsProgress > 0.995) {
+    statsLocked = false;
+    statsCompleted = true;
+    // Push scroll slightly down to let natural scroll takeover
+    window.scrollTo(0, statsLockScrollY + 20);
+  }
+}
+
+function startStatsSmoothing() {
+  if (statsAnimationFrame) {
+    return;
+  }
+
+  const animate = () => {
+    statsProgress += (statsTargetProgress - statsProgress) * 0.16;
+
+    if (Math.abs(statsTargetProgress - statsProgress) < 0.001) {
+      statsProgress = statsTargetProgress;
+    }
+
+    renderStatsScene(statsProgress);
+
+    if (statsProgress === statsTargetProgress) {
+      if (statsLocked && statsTargetProgress >= 1) {
+        statsLocked = false;
+        statsCompleted = true;
+      }
+      statsAnimationFrame = null;
+      return;
+    }
+
+    statsAnimationFrame = requestAnimationFrame(animate);
+  };
+
+  statsAnimationFrame = requestAnimationFrame(animate);
+}
 
 function getEducationLockPoint() {
   const education = document.querySelector('.education');
@@ -207,13 +385,20 @@ function stabilizeLayout(shouldResetScroll = false) {
 
 window.addEventListener('load', () => {
   stabilizeLayout(true);
+  syncStatsScene();
 });
 
 if (document.fonts) {
   document.fonts.ready.then(() => stabilizeLayout(false));
 }
 
-window.addEventListener('resize', syncLayout);
+window.addEventListener('resize', () => {
+  syncLayout();
+  syncStatsScene();
+});
 window.addEventListener('scroll', syncEducationCards, { passive: true });
+window.addEventListener('scroll', syncStatsScene, { passive: true });
 window.addEventListener('wheel', handleEducationWheel, { passive: false });
+window.addEventListener('wheel', handleStatsWheel, { passive: false });
 requestAnimationFrame(syncLayout);
+requestAnimationFrame(syncStatsScene);
