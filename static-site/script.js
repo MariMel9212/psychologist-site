@@ -142,8 +142,8 @@ function handleStatsWheel(event) {
   const delta = event.deltaY;
   const sceneRect = scene.getBoundingClientRect();
   
-  // Lock triggers when stats-scene (sticky block) hits the top of the viewport
-  const isSceneCentered = sceneRect.top <= 20;
+  // Lock triggers when stats-scene (sticky block) comes within 100px of the top of the viewport
+  const isSceneCentered = sceneRect.top <= 100;
   const isEnteringLock = delta > 0 && isSceneCentered && statsTargetProgress < 1;
   const isLeavingBack = delta < 0 && statsLocked && statsTargetProgress <= 0;
   const shouldControlAnimation = !statsCompleted && (statsLocked || isEnteringLock);
@@ -161,6 +161,9 @@ function handleStatsWheel(event) {
   if (!statsLocked) {
     statsLocked = true;
     statsTargetProgress = statsProgress;
+    
+    // Snap perfectly to the top of the section exactly ONCE when the lock starts
+    window.scrollTo(0, stats.offsetTop);
 
     if (statsAnimationFrame) {
       cancelAnimationFrame(statsAnimationFrame);
