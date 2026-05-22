@@ -58,10 +58,13 @@ function renderStatsScene(progress) {
   const radius = 18 * (1 - photoProgress);
   const shadow = 0.12 * (1 - photoProgress);
 
+  const topOffset = 30 * (1 - photoProgress);
+
   photo.style.setProperty('--stats-photo-width', `${width.toFixed(1)}px`);
   photo.style.setProperty('--stats-photo-height', `${height.toFixed(1)}px`);
   photo.style.setProperty('--stats-photo-radius', `${radius.toFixed(1)}px`);
   photo.style.setProperty('--stats-photo-shadow', shadow.toFixed(3));
+  photo.style.setProperty('--stats-photo-top', `calc(50% + ${topOffset.toFixed(1)}px)`);
 
   facts.forEach((fact, index) => {
     const start = 0.10 + (index * 0.10);
@@ -160,10 +163,8 @@ function handleStatsWheel(event) {
 
   if (!statsLocked) {
     statsLocked = true;
+    statsLockScrollY = window.scrollY + sceneRect.top; // Perfect real-time lock coordinate
     statsTargetProgress = statsProgress;
-    
-    // Snap perfectly to the top of the section exactly ONCE when the lock starts
-    window.scrollTo(0, stats.offsetTop);
 
     if (statsAnimationFrame) {
       cancelAnimationFrame(statsAnimationFrame);
@@ -185,6 +186,8 @@ function startStatsSmoothing() {
     return;
   }
 
+  const stats = document.querySelector('.stats');
+
   const animate = () => {
     statsProgress += (statsTargetProgress - statsProgress) * 0.16;
 
@@ -193,6 +196,12 @@ function startStatsSmoothing() {
     }
 
     renderStatsScene(statsProgress);
+
+    // Keep scroll locked precisely at the dynamic lock point during animation frames
+    // to absorb and nullify browser inertial scroll drift with zero jitter.
+    if (statsLocked) {
+      window.scrollTo(0, statsLockScrollY);
+    }
 
     if (statsProgress === statsTargetProgress) {
       if (statsLocked && statsTargetProgress >= 1) {
