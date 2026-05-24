@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Сайт для Кати — превью</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f6f4ed;
+        color: #233746;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      .figma-hero {
+        position: relative;
+        width: 100vw;
+        min-height: 100vh;
+        overflow: hidden;
+        background: #f6f4ed;
+      }
+
+      .title {
+        position: absolute;
+        margin: 0;
+        color: #233746;
+        font-size: clamp(56px, 6.67vw, 96px);
+        font-weight: 600;
+        line-height: 1.2;
+        letter-spacing: -0.06em;
+        white-space: nowrap;
+      }
+
+      .title-main {
+        left: 8.33vw;
+        top: 13.33vh;
+      }
+
+      .title-site {
+        left: 77.7vw;
+        top: 80.1vh;
+      }
+
+      .circle {
+        position: absolute;
+        width: 17.08vw;
+        max-width: 246px;
+        aspect-ratio: 246 / 251;
+        border-radius: 50%;
+        background: #e2d98f;
+      }
+
+      .circle-left {
+        left: 6.04vw;
+        top: 62.56vh;
+      }
+
+      .circle-center {
+        left: 35.63vw;
+        top: 43.44vh;
+      }
+
+      .circle-top {
+        left: 64.79vw;
+        top: 15.56vh;
+      }
+
+      @media (max-width: 900px) {
+        .title-main {
+          left: 7vw;
+          top: 10vh;
+        }
+
+        .title-site {
+          left: auto;
+          right: 7vw;
+          top: 78vh;
+        }
+
+        .circle {
+          width: 28vw;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .title {
+          font-size: 44px;
+        }
+
+        .circle {
+          width: 42vw;
+        }
+
+        .circle-left {
+          left: -8vw;
+        }
+
+        .circle-center {
+          left: 39vw;
+        }
+
+        .circle-top {
+          left: 58vw;
+          top: 22vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="figma-hero" data-node-id="1:2" data-name="Первый экран">
+      <h1 class="title title-main" data-node-id="1:3">Екатерина</h1>
+      <div class="circle circle-left" data-node-id="3:4"></div>
+      <div class="circle circle-center" data-node-id="3:2"></div>
+      <div class="circle circle-top" data-node-id="3:3"></div>
+      <p class="title title-site" data-node-id="3:5">Сайт</p>
+    </main>
+  </body>
+</html>

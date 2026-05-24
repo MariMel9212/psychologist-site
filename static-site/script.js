@@ -43,12 +43,15 @@ let statsLockScrollY = 0;
 function renderStatsScene(progress) {
   const photo = document.querySelector('.stats-photo-wrap');
   const facts = Array.from(document.querySelectorAll('.stats-fact'));
+  const checklistPage = document.querySelector('.stats-checklist-page');
+  const scriptTitle = document.querySelector('.section-script-stats');
 
   if (!photo || !facts.length) {
     return;
   }
 
-  const photoProgress = easeInOutQuart(clamp((progress - 0.62) / 0.38));
+  // Phase 1 & 2: Photo zoom (starts at 0.41, reaches full screen at 0.72)
+  const photoProgress = easeInOutQuart(clamp((progress - 0.41) / 0.31));
   const startWidth = 286;
   const startHeight = 154;
   const endWidth = window.innerWidth;
@@ -66,11 +69,21 @@ function renderStatsScene(progress) {
   photo.style.setProperty('--stats-photo-shadow', shadow.toFixed(3));
   photo.style.setProperty('--stats-photo-top', `calc(50% + ${topOffset.toFixed(1)}px)`);
 
+  if (scriptTitle) {
+    const scriptOpacity = 1 - photoProgress;
+    scriptTitle.style.opacity = scriptOpacity.toFixed(3);
+  }
+
+  // Phase 3: Facts Fade-out (starts at 0.72, fully faded by 0.82)
+  const fadeOutProgress = clamp((progress - 0.72) / 0.10);
+
   facts.forEach((fact, index) => {
-    const start = 0.10 + (index * 0.10);
-    const end = start + 0.18;
+    // Flight-in timing (from 0.05 to 0.41)
+    const start = 0.05 + (index * 0.07);
+    const end = start + 0.15;
     const factProgress = clamp((progress - start) / (end - start));
-    const opacity = easeOutQuint(factProgress);
+    const flyInOpacity = easeOutQuint(factProgress);
+    const opacity = flyInOpacity * (1 - fadeOutProgress);
     const y = 32 - (32 * easeOutQuint(factProgress));
     const scale = 0.96 + (0.04 * easeOutQuint(factProgress));
 
@@ -78,6 +91,23 @@ function renderStatsScene(progress) {
     fact.style.setProperty('--fact-y', `${y.toFixed(1)}px`);
     fact.style.setProperty('--fact-scale', scale.toFixed(3));
   });
+
+  // Phase 4: Checklist page fade-in (starts at 0.72, fully faded in at 1.0)
+  const checklistProgress = easeOutQuint(clamp((progress - 0.72) / 0.28));
+  const checklistOpacity = checklistProgress;
+  const checklistY = 30 * (1 - checklistProgress);
+  const checklistScale = 0.96 + (0.04 * checklistProgress);
+
+  if (checklistPage) {
+    checklistPage.style.setProperty('--checklist-opacity', checklistOpacity.toFixed(3));
+    checklistPage.style.setProperty('--checklist-y', `${checklistY.toFixed(1)}px`);
+    checklistPage.style.setProperty('--checklist-scale', checklistScale.toFixed(3));
+    if (checklistProgress > 0.9) {
+      checklistPage.classList.add('visible');
+    } else {
+      checklistPage.classList.remove('visible');
+    }
+  }
 }
 
 function syncStatsScene() {
@@ -90,6 +120,8 @@ function syncStatsScene() {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.innerWidth <= 860) {
     const photo = document.querySelector('.stats-photo-wrap');
     const facts = Array.from(document.querySelectorAll('.stats-fact'));
+    const checklistPage = document.querySelector('.stats-checklist-page');
+    const scriptTitle = document.querySelector('.section-script-stats');
     if (photo && facts.length) {
       photo.style.setProperty('--stats-photo-width', '100%');
       photo.style.setProperty('--stats-photo-height', '260px');
@@ -100,6 +132,15 @@ function syncStatsScene() {
         fact.style.setProperty('--fact-y', '0px');
         fact.style.setProperty('--fact-scale', 1);
       });
+    }
+    if (scriptTitle) {
+      scriptTitle.style.opacity = '1';
+    }
+    if (checklistPage) {
+      checklistPage.style.setProperty('--checklist-opacity', '1');
+      checklistPage.style.setProperty('--checklist-y', '0px');
+      checklistPage.style.setProperty('--checklist-scale', '1');
+      checklistPage.classList.add('visible');
     }
     return;
   }

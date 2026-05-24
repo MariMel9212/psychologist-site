@@ -601,8 +601,9 @@ a {
   min-height: 310px;
   padding: 32px 32px 28px 32px;
   border-radius: 32px;
-  background: #edf2fa;
-  transition: background 220ms ease, box-shadow 220ms ease;
+  background: #ffffff;
+  border: 1px solid #f2f3f7;
+  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
   
   /* Safari overflow: hidden with border-radius & GPU acceleration bug fix */
   transform: translateZ(0);
@@ -611,8 +612,9 @@ a {
 }
 
 .direction-card:hover {
-  background: #e6ecf5;
-  box-shadow: 0 16px 44px rgba(35, 55, 70, 0.07);
+  background: #ffffff;
+  border-color: #e4e7ec;
+  box-shadow: 0 16px 44px rgba(35, 55, 70, 0.04);
 }
 
 .direction-card__header {
@@ -689,7 +691,7 @@ a {
 
 .stats {
   position: relative;
-  min-height: 280vh;
+  min-height: 380vh;
   background: var(--background);
 }
 
@@ -699,6 +701,7 @@ a {
   height: 100vh;
   overflow: hidden;
   background: var(--background);
+  z-index: 1;
 }
 
 .stats-photo-wrap {
@@ -793,6 +796,142 @@ a {
   left: auto;
   right: 100px;
   top: 244px;
+}
+
+.stats-checklist-page {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  opacity: var(--checklist-opacity, 0);
+  transform: translate3d(0, var(--checklist-y, 30px), 0) scale(var(--checklist-scale, 0.96));
+  will-change: opacity, transform;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.stats-checklist-page.visible {
+  pointer-events: auto;
+}
+
+.checklist-main-title {
+  position: absolute;
+  left: 100px;
+  top: 104px;
+  width: 550px;
+  font-family: Avenir, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 72px;
+  font-weight: 600;
+  line-height: 1.05;
+  color: #000000;
+  letter-spacing: -2.5px;
+  margin: 0;
+}
+
+.checklist-box {
+  position: absolute;
+  left: 99px;
+  top: 295px;
+  width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.checklist-content h3 {
+  font-family: Avenir, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #000000;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.8px;
+}
+
+.checklist-content p {
+  font-family: Avenir, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #000000;
+  opacity: 0.7;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.checklist-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 58px;
+  padding: 0 36px;
+  border-radius: 16px;
+  background: #c0c710;
+  color: #313403;
+  font-family: Avenir, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  text-decoration: none;
+  width: fit-content;
+  box-shadow: 0 4px 20px rgba(192, 199, 16, 0.15);
+  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.checklist-btn-icon {
+  width: 24px;
+  height: 24px;
+  transition: transform 220ms ease;
+}
+
+.checklist-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  background: #ccd41a;
+  box-shadow: 0 8px 25px rgba(192, 199, 16, 0.3);
+}
+
+.checklist-btn:hover .checklist-btn-icon {
+  transform: translateY(1px);
+}
+
+.checklist-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.checklist-features {
+  position: absolute;
+  left: 99px;
+  top: 577px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.checklist-feature {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: auto;
+}
+
+.checklist-feature:nth-child(1),
+.checklist-feature:nth-child(2) {
+  width: 154px;
+}
+
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.checklist-feature p {
+  font-family: Avenir, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #000000;
+  opacity: 0.7;
+  margin: 0;
 }
 
 .stats-intro {
