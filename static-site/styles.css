@@ -918,6 +918,10 @@ a {
   width: 154px;
 }
 
+.checklist-feature:nth-child(3) {
+  width: 174px;
+}
+
 .feature-icon {
   width: 44px;
   height: 44px;
