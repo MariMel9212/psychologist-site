@@ -38,6 +38,7 @@ let statsTargetProgress = 0;
 let statsAnimationFrame = null;
 let statsLocked = false;
 let statsCompleted = false;
+let statsLockScrollY = 0;
 
 function renderStatsScene(progress) {
   const photo = document.querySelector('.stats-photo-wrap');
@@ -53,8 +54,8 @@ function renderStatsScene(progress) {
   const photoProgress = easeInOutQuart(clamp((progress - 0.41) / 0.31));
   const startWidth = 286;
   const startHeight = 154;
-  const endWidth = window.innerWidth;
-  const endHeight = window.innerHeight;
+  const endWidth = window.innerWidth + 40;
+  const endHeight = window.innerHeight + 40;
   const width = startWidth + ((endWidth - startWidth) * photoProgress);
   const height = startHeight + ((endHeight - startHeight) * photoProgress);
   const radius = 18 * (1 - photoProgress);
@@ -144,10 +145,25 @@ function syncStatsScene() {
     return;
   }
 
-  if (!statsLocked && !statsCompleted) {
-    statsProgress = 0;
-    statsTargetProgress = 0;
-    renderStatsScene(0);
+  if (statsLocked) {
+    window.scrollTo(0, statsLockScrollY);
+    return;
+  }
+
+  if (!statsLocked) {
+    const rect = stats.getBoundingClientRect();
+    if (rect.top > 0) {
+      statsProgress = 0;
+      statsTargetProgress = 0;
+      statsCompleted = false;
+      renderStatsScene(0);
+    } else if (!statsCompleted) {
+      const scrollRange = stats.offsetHeight - window.innerHeight;
+      const progress = clamp(-rect.top / scrollRange);
+      statsProgress = progress;
+      statsTargetProgress = progress;
+      renderStatsScene(statsProgress);
+    }
   }
 
   if (statsCompleted) {
@@ -186,7 +202,13 @@ function handleStatsWheel(event) {
 
   if (!statsLocked) {
     statsLocked = true;
+    statsLockScrollY = window.scrollY + sceneRect.top; // Perfect real-time lock coordinate
     statsTargetProgress = statsProgress;
+
+    if (statsAnimationFrame) {
+      cancelAnimationFrame(statsAnimationFrame);
+      statsAnimationFrame = null;
+    }
   }
 
   statsTargetProgress = clamp(statsTargetProgress + delta / 1800);
