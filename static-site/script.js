@@ -38,7 +38,6 @@ let statsTargetProgress = 0;
 let statsAnimationFrame = null;
 let statsLocked = false;
 let statsCompleted = false;
-let statsLockScrollY = 0;
 
 function renderStatsScene(progress) {
   const photo = document.querySelector('.stats-photo-wrap');
@@ -145,32 +144,15 @@ function syncStatsScene() {
     return;
   }
 
-  const statsStart = stats.offsetTop;
-
-  // Reset states if scrolled back up above the section
-  if (window.scrollY < statsStart - 100) {
-    statsCompleted = false;
-    statsLocked = false;
+  if (!statsLocked && !statsCompleted) {
     statsProgress = 0;
     statsTargetProgress = 0;
     renderStatsScene(0);
-    return;
-  }
-
-  if (!statsLocked && !statsCompleted) {
-    const rect = stats.getBoundingClientRect();
-    if (rect.top > 0) {
-      statsProgress = 0;
-      renderStatsScene(0);
-    } else {
-      const scrollRange = stats.offsetHeight - window.innerHeight;
-      const progress = clamp(-rect.top / scrollRange);
-      statsProgress = progress;
-      renderStatsScene(progress);
-    }
   }
 
   if (statsCompleted) {
+    statsProgress = 1;
+    statsTargetProgress = 1;
     renderStatsScene(1);
   }
 }
@@ -186,7 +168,7 @@ function handleStatsWheel(event) {
   const delta = event.deltaY;
   const sceneRect = scene.getBoundingClientRect();
   
-  // Lock triggers exactly when stats-scene (sticky block) aligns with the top of the viewport (top <= 1)
+  // Lock triggers exactly when stats-scene aligns with the top of the viewport
   const isSceneCentered = sceneRect.top <= 1;
   const isEnteringLock = delta > 0 && isSceneCentered && statsTargetProgress < 1;
   const isLeavingBack = delta < 0 && statsLocked && statsTargetProgress <= 0;
@@ -204,13 +186,7 @@ function handleStatsWheel(event) {
 
   if (!statsLocked) {
     statsLocked = true;
-    statsLockScrollY = window.scrollY + sceneRect.top; // Perfect real-time lock coordinate
     statsTargetProgress = statsProgress;
-
-    if (statsAnimationFrame) {
-      cancelAnimationFrame(statsAnimationFrame);
-      statsAnimationFrame = null;
-    }
   }
 
   statsTargetProgress = clamp(statsTargetProgress + delta / 1800);
@@ -227,22 +203,14 @@ function startStatsSmoothing() {
     return;
   }
 
-  const stats = document.querySelector('.stats');
-
   const animate = () => {
-    statsProgress += (statsTargetProgress - statsProgress) * 0.16;
+    statsProgress += (statsTargetProgress - statsProgress) * 0.12;
 
     if (Math.abs(statsTargetProgress - statsProgress) < 0.001) {
       statsProgress = statsTargetProgress;
     }
 
     renderStatsScene(statsProgress);
-
-    // Keep scroll locked precisely at the dynamic lock point during animation frames
-    // to absorb and nullify browser inertial scroll drift with zero jitter.
-    if (statsLocked) {
-      window.scrollTo(0, statsLockScrollY);
-    }
 
     if (statsProgress === statsTargetProgress) {
       if (statsLocked && statsTargetProgress >= 1) {
