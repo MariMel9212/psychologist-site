@@ -33,6 +33,16 @@ const educationStackGap = 44;
 const educationHiddenY = 300;
 const educationLockOffset = 70;
 const educationScrollScene = 2200;
+
+let resultsProgress = 0;
+let resultsTargetProgress = 0;
+let resultsAnimationFrame = null;
+let resultsLocked = false;
+let resultsCompleted = false;
+let resultsLockScrollY = 0;
+const resultsScrollScene = 2200;
+const resultsLockOffset = 70;
+
 let statsProgress = 0;
 let statsTargetProgress = 0;
 let statsAnimationFrame = null;
@@ -404,6 +414,7 @@ function startEducationSmoothing() {
 function syncLayout() {
   syncBadgeLine();
   syncEducationCards();
+  syncResultsCards();
 }
 
 function stabilizeLayout(shouldResetScroll = false) {
@@ -420,9 +431,229 @@ function stabilizeLayout(shouldResetScroll = false) {
   });
 }
 
+// --- Chat Screen Transitions (Observer-controlled) ---
+function initChatTransitions() {
+  const processSection = document.querySelector('.process');
+  const homeScreen = document.querySelector('.phone-screen.screen-home');
+  const chatScreen = document.querySelector('.phone-screen.screen-chat');
+  
+  if (!processSection || !homeScreen || !chatScreen) return;
+  
+  let currentScreen = 'home';
+  let intervalId = null;
+  
+  const startTransitionLoop = () => {
+    if (intervalId) return; // Already running
+    
+    intervalId = setInterval(() => {
+      if (currentScreen === 'home') {
+        homeScreen.classList.remove('active');
+        chatScreen.classList.add('active');
+        currentScreen = 'chat';
+      } else {
+        chatScreen.classList.remove('active');
+        homeScreen.classList.add('active');
+        currentScreen = 'home';
+      }
+    }, 4500);
+  };
+  
+  const stopTransitionLoop = () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
+    // Always reset to initial state with button screen active
+    homeScreen.classList.add('active');
+    chatScreen.classList.remove('active');
+    currentScreen = 'home';
+  };
+  
+  // Intersection Observer: Start loop when visible, reset and stop when hidden
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        // When we start looking at it: reset first, then start transition cycle
+        stopTransitionLoop();
+        startTransitionLoop();
+      } else {
+        // When we scroll away: stop and reset
+        stopTransitionLoop();
+      }
+    });
+  }, {
+    threshold: 0.25 // Activates when 25% of the section is visible in viewport
+  });
+  
+  observer.observe(processSection);
+}
+
+// --- Results Section Animation (Slide-Out Deck style) ---
+function getResultsLockPoint() {
+  const results = document.querySelector('.results');
+  const resultsCard = document.querySelector('.results-card');
+
+  if (!results || !resultsCard) {
+    return null;
+  }
+
+  const cardHeight = resultsCard.offsetHeight;
+  const viewportCenterTop = (window.innerHeight - cardHeight) / 2;
+
+  return {
+    results,
+    resultsCard,
+    stickyStart: results.offsetTop + resultsCard.offsetTop - viewportCenterTop,
+    stickyEnd: results.offsetTop + resultsCard.offsetTop - viewportCenterTop + resultsScrollScene,
+  };
+}
+
+function renderResultsCards(progress) {
+  const items = Array.from(document.querySelectorAll('.results-item'));
+  const N = items.length;
+
+  items.forEach((item, index) => {
+    const targetProgress = index / (N - 1);
+    
+    let y = 0;
+    let opacity = 0;
+    let scale = 1;
+    let zIndex = index + 1;
+
+    if (progress === targetProgress) {
+      y = 0;
+      opacity = 1;
+      scale = 1;
+    } else if (progress < targetProgress) {
+      // Card is entering from the bottom
+      const segmentProgress = clamp((progress - (targetProgress - 0.5)) / 0.5);
+      const eased = easeInOutQuart(segmentProgress);
+      y = 300 * (1 - eased);
+      opacity = eased;
+      scale = 0.95 + 0.05 * eased;
+    } else {
+      // Card is exiting upwards
+      const segmentProgress = clamp((progress - targetProgress) / 0.5);
+      const eased = easeInOutQuart(segmentProgress);
+      y = -300 * eased;
+      opacity = 1 - eased;
+      scale = 1 - 0.05 * eased;
+    }
+
+    item.style.transform = `translate3d(0, ${y}px, 0) scale(${scale})`;
+    item.style.opacity = opacity;
+    item.style.zIndex = zIndex;
+  });
+}
+
+function syncResultsCards() {
+  const lockPoint = getResultsLockPoint();
+
+  if (!lockPoint || window.innerWidth <= 860) {
+    Array.from(document.querySelectorAll('.results-item')).forEach((item) => {
+      item.style.transform = '';
+      item.style.opacity = '';
+      item.style.zIndex = '';
+    });
+    return;
+  }
+
+  if (!resultsLocked && !resultsCompleted) {
+    resultsTargetProgress = 0;
+  }
+
+  if (resultsCompleted) {
+    resultsTargetProgress = 1;
+  }
+
+  startResultsSmoothing();
+}
+
+function handleResultsWheel(event) {
+  const lockPoint = getResultsLockPoint();
+
+  if (!lockPoint || window.innerWidth <= 860) {
+    return;
+  }
+
+  const delta = event.deltaY;
+  const sceneRect = lockPoint.results.getBoundingClientRect();
+  const cardRect = lockPoint.resultsCard.getBoundingClientRect();
+  const sceneTop = Math.min(sceneRect.top, cardRect.top - 160);
+  const sceneBottom = cardRect.bottom;
+  const sceneCenter = sceneTop + ((sceneBottom - sceneTop) / 2);
+  const viewportCenter = window.innerHeight / 2;
+  const isSceneCentered = sceneCenter <= viewportCenter + resultsLockOffset;
+  const isEnteringLock = delta > 0 && isSceneCentered && resultsTargetProgress < 1;
+  const isLeavingBack = delta < 0 && resultsLocked && resultsTargetProgress <= 0;
+  const shouldControlAnimation = !resultsCompleted && (resultsLocked || isEnteringLock);
+
+  if (!shouldControlAnimation || isLeavingBack) {
+    if (isLeavingBack) {
+      resultsLocked = false;
+      resultsCompleted = false;
+    }
+
+    return;
+  }
+
+  event.preventDefault();
+
+  if (!resultsLocked) {
+    resultsLocked = true;
+    resultsLockScrollY = window.scrollY;
+    resultsTargetProgress = resultsProgress;
+
+    if (resultsAnimationFrame) {
+      cancelAnimationFrame(resultsAnimationFrame);
+      resultsAnimationFrame = null;
+    }
+  }
+
+  resultsTargetProgress = clamp(resultsTargetProgress + delta / 980);
+  startResultsSmoothing();
+
+  if (resultsTargetProgress >= 1 && delta > 0 && resultsProgress > 0.995) {
+    resultsLocked = false;
+    resultsCompleted = true;
+  }
+}
+
+function startResultsSmoothing() {
+  if (resultsAnimationFrame) {
+    return;
+  }
+
+  const animate = () => {
+    resultsProgress += (resultsTargetProgress - resultsProgress) * 0.16;
+
+    if (Math.abs(resultsTargetProgress - resultsProgress) < 0.001) {
+      resultsProgress = resultsTargetProgress;
+    }
+
+    renderResultsCards(resultsProgress);
+
+    if (resultsProgress === resultsTargetProgress) {
+      if (resultsLocked && resultsTargetProgress >= 1) {
+        resultsLocked = false;
+        resultsCompleted = true;
+      }
+
+      resultsAnimationFrame = null;
+      return;
+    }
+
+    resultsAnimationFrame = requestAnimationFrame(animate);
+  };
+
+  resultsAnimationFrame = requestAnimationFrame(animate);
+}
+
 window.addEventListener('load', () => {
   stabilizeLayout(true);
   syncStatsScene();
+  initChatTransitions();
+  syncResultsCards();
 });
 
 if (document.fonts) {
@@ -434,8 +665,10 @@ window.addEventListener('resize', () => {
   syncStatsScene();
 });
 window.addEventListener('scroll', syncEducationCards, { passive: true });
+window.addEventListener('scroll', syncResultsCards, { passive: true });
 window.addEventListener('scroll', syncStatsScene, { passive: true });
 window.addEventListener('wheel', handleEducationWheel, { passive: false });
+window.addEventListener('wheel', handleResultsWheel, { passive: false });
 window.addEventListener('wheel', handleStatsWheel, { passive: false });
 requestAnimationFrame(syncLayout);
 requestAnimationFrame(syncStatsScene);
