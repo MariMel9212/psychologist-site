@@ -340,13 +340,9 @@ function handleEducationWheel(event) {
   }
 
   const delta = event.deltaY;
-  const sceneRect = lockPoint.education.getBoundingClientRect();
   const cardRect = lockPoint.educationCard.getBoundingClientRect();
-  const sceneTop = Math.min(sceneRect.top, cardRect.top - 160);
-  const sceneBottom = cardRect.bottom;
-  const sceneCenter = sceneTop + ((sceneBottom - sceneTop) / 2);
-  const viewportCenter = window.innerHeight / 2;
-  const isSceneCentered = sceneCenter <= viewportCenter + educationLockOffset;
+  const stickyTop = (window.innerHeight - 560) / 2;
+  const isSceneCentered = cardRect.top <= stickyTop + 2;
   const isEnteringLock = delta > 0 && isSceneCentered && educationTargetProgress < 1;
   const isLeavingBack = delta < 0 && educationLocked && educationTargetProgress <= 0;
   const shouldControlAnimation = !educationCompleted && (educationLocked || isEnteringLock);
@@ -577,13 +573,9 @@ function handleResultsWheel(event) {
   }
 
   const delta = event.deltaY;
-  const sceneRect = lockPoint.results.getBoundingClientRect();
   const cardRect = lockPoint.resultsCard.getBoundingClientRect();
-  const sceneTop = Math.min(sceneRect.top, cardRect.top - 160);
-  const sceneBottom = cardRect.bottom;
-  const sceneCenter = sceneTop + ((sceneBottom - sceneTop) / 2);
-  const viewportCenter = window.innerHeight / 2;
-  const isSceneCentered = sceneCenter <= viewportCenter + resultsLockOffset;
+  const stickyTop = (window.innerHeight - 560) / 2;
+  const isSceneCentered = cardRect.top <= stickyTop + 2;
   const isEnteringLock = delta > 0 && isSceneCentered && resultsTargetProgress < 1;
   const isLeavingBack = delta < 0 && resultsLocked && resultsTargetProgress <= 0;
   const shouldControlAnimation = !resultsCompleted && (resultsLocked || isEnteringLock);
