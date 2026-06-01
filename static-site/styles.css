@@ -13,6 +13,11 @@
   --section-content-top: calc(var(--section-script-top) + var(--section-script-height) + var(--section-title-content-gap));
 }
 
+body.scroll-locked {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
 * {
   box-sizing: border-box;
 }

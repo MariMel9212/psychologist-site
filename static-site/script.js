@@ -31,7 +31,7 @@ let educationLockScrollY = 0;
 const educationOverlap = 0.08;
 const educationStackGap = 44;
 const educationHiddenY = 300;
-const educationLockOffset = 70;
+const educationLockOffset = 150;
 const educationScrollScene = 2200;
 
 let resultsProgress = 0;
@@ -49,6 +49,16 @@ let statsAnimationFrame = null;
 let statsLocked = false;
 let statsCompleted = false;
 let statsLockScrollY = 0;
+
+function setStatsLocked(value) {
+  statsLocked = value;
+  if (value) {
+    document.body.classList.add('scroll-locked');
+    window.scrollTo(0, statsLockScrollY);
+  } else {
+    document.body.classList.remove('scroll-locked');
+  }
+}
 
 function renderStatsScene(progress) {
   const photo = document.querySelector('.stats-photo-wrap');
@@ -102,8 +112,8 @@ function renderStatsScene(progress) {
     fact.style.setProperty('--fact-scale', scale.toFixed(3));
   });
 
-  // Phase 4: Checklist page fade-in (starts at 0.72, fully faded in at 1.0)
-  const checklistProgress = easeOutQuint(clamp((progress - 0.72) / 0.28));
+  // Phase 4: Checklist page fade-in (starts at 0.72, fully faded in at 0.88, held to 1.0)
+  const checklistProgress = easeOutQuint(clamp((progress - 0.72) / 0.16));
   const checklistOpacity = checklistProgress;
   const checklistY = 30 * (1 - checklistProgress);
   const checklistScale = 0.96 + (0.04 * checklistProgress);
@@ -155,32 +165,22 @@ function syncStatsScene() {
     return;
   }
 
-  if (statsLocked) {
-    window.scrollTo(0, statsLockScrollY);
-    return;
+  const rect = stats.getBoundingClientRect();
+  if (rect.top > 0) {
+    statsProgress = 0;
+    statsTargetProgress = 0;
+    statsCompleted = false;
   }
 
-  if (!statsLocked) {
-    const rect = stats.getBoundingClientRect();
-    if (rect.top > 0) {
-      statsProgress = 0;
-      statsTargetProgress = 0;
-      statsCompleted = false;
-      renderStatsScene(0);
-    } else if (!statsCompleted) {
-      const scrollRange = stats.offsetHeight - window.innerHeight;
-      const progress = clamp(-rect.top / scrollRange);
-      statsProgress = progress;
-      statsTargetProgress = progress;
-      renderStatsScene(statsProgress);
-    }
+  if (!statsLocked && !statsCompleted) {
+    statsTargetProgress = 0;
   }
 
   if (statsCompleted) {
-    statsProgress = 1;
     statsTargetProgress = 1;
-    renderStatsScene(1);
   }
+
+  startStatsSmoothing();
 }
 
 function handleStatsWheel(event) {
@@ -194,15 +194,15 @@ function handleStatsWheel(event) {
   const delta = event.deltaY;
   const sceneRect = scene.getBoundingClientRect();
   
-  // Lock triggers exactly when stats-scene aligns with the top of the viewport
-  const isSceneCentered = sceneRect.top <= 1;
+  // Lock triggers early on approach
+  const isSceneCentered = sceneRect.top <= 250;
   const isEnteringLock = delta > 0 && isSceneCentered && statsTargetProgress < 1;
   const isLeavingBack = delta < 0 && statsLocked && statsTargetProgress <= 0;
   const shouldControlAnimation = !statsCompleted && (statsLocked || isEnteringLock);
 
   if (!shouldControlAnimation || isLeavingBack) {
     if (isLeavingBack) {
-      statsLocked = false;
+      setStatsLocked(false);
       statsCompleted = false;
     }
     return;
@@ -211,8 +211,8 @@ function handleStatsWheel(event) {
   event.preventDefault();
 
   if (!statsLocked) {
-    statsLocked = true;
-    statsLockScrollY = window.scrollY + sceneRect.top; // Perfect real-time lock coordinate
+    statsLockScrollY = Math.round(stats.offsetTop); // Absolute exact sticky lock position
+    setStatsLocked(true);
     statsTargetProgress = statsProgress;
 
     if (statsAnimationFrame) {
@@ -225,7 +225,7 @@ function handleStatsWheel(event) {
   startStatsSmoothing();
 
   if (statsTargetProgress >= 1 && delta > 0 && statsProgress > 0.995) {
-    statsLocked = false;
+    setStatsLocked(false);
     statsCompleted = true;
   }
 }
@@ -246,7 +246,7 @@ function startStatsSmoothing() {
 
     if (statsProgress === statsTargetProgress) {
       if (statsLocked && statsTargetProgress >= 1) {
-        statsLocked = false;
+        setStatsLocked(false);
         statsCompleted = true;
       }
       statsAnimationFrame = null;
@@ -340,9 +340,13 @@ function handleEducationWheel(event) {
   }
 
   const delta = event.deltaY;
+  const sceneRect = lockPoint.education.getBoundingClientRect();
   const cardRect = lockPoint.educationCard.getBoundingClientRect();
-  const stickyTop = (window.innerHeight - 560) / 2;
-  const isSceneCentered = cardRect.top <= stickyTop + 2;
+  const sceneTop = Math.min(sceneRect.top, cardRect.top - 160);
+  const sceneBottom = cardRect.bottom;
+  const sceneCenter = sceneTop + ((sceneBottom - sceneTop) / 2);
+  const viewportCenter = window.innerHeight / 2;
+  const isSceneCentered = sceneCenter <= viewportCenter + educationLockOffset;
   const isEnteringLock = delta > 0 && isSceneCentered && educationTargetProgress < 1;
   const isLeavingBack = delta < 0 && educationLocked && educationTargetProgress <= 0;
   const shouldControlAnimation = !educationCompleted && (educationLocked || isEnteringLock);
