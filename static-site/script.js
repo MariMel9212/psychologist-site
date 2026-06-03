@@ -165,6 +165,13 @@ function syncStatsScene() {
     return;
   }
 
+  if (statsLocked) {
+    if (window.scrollY !== statsLockScrollY) {
+      window.scrollTo(0, statsLockScrollY);
+    }
+    return;
+  }
+
   const rect = stats.getBoundingClientRect();
   if (rect.top > 0) {
     statsProgress = 0;
