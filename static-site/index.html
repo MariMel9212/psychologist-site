@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Comforter+Brush&family=Inter:wght@400;500;600;700;800&family=Ysabeau+Infant:wght@600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=2" />
+    <link rel="stylesheet" href="./styles.css?v=4" />
   </head>
   <body>
     <main class="home" data-node-id="15:290" data-name="Общая">
@@ -369,54 +369,91 @@
 
         <div class="results-card">
           <div class="results-copy">
-            <h2>Что вы получаете<br />по итогам первой сессии</h2>
-            <p>Первая консультация — это не просто знакомство, а полноценный практический шаг к внутреннему облегчению и ясности</p>
+            <div class="results-copy-content">
+              <span class="results-copy-badge">По итогам</span>
+              <h2 class="results-copy-title">Первой сессии</h2>
+            </div>
+            <p class="results-copy-footer">Первая консультация – это полноценный практический шаг к внутреннему облегчению и ясности</p>
           </div>
 
           <div class="results-list">
             <!-- Result Item 1 -->
-            <article class="results-item">
+            <article class="results-item active">
               <span class="results-num">01</span>
-              <div class="results-item-header">
-                <span class="results-tag">Эмоциональное облегчение</span>
-                <div class="results-icon-wrap" aria-hidden="true">
-                  <img src="./assets/Heart - Iconly Pro.svg" alt="" style="width: 20px; height: 24px;" />
-                </div>
+              <div class="results-item-trigger">
+                <h3 class="results-item-title">Облегчение и поддержка</h3>
               </div>
-              <h3 class="results-item-title">Облегчение и поддержка</h3>
-              <p class="results-item-desc">Вы сможете выговориться в безопасном, конфиденциальном и бережном пространстве, снизить уровень тревоги и почувствовать, что вы больше не один на один со своими переживаниями.</p>
+              <div class="results-item-body">
+                <p class="results-item-desc">Вы сможете выговориться в безопасном, конфиденциальном и бережном пространстве, снизить уровень тревоги и почувствовать, что вы больше не один на один со своими переживаниями.</p>
+              </div>
             </article>
 
             <!-- Result Item 2 -->
             <article class="results-item">
               <span class="results-num">02</span>
-              <div class="results-item-header">
-                <span class="results-tag">Осознание причин</span>
-                <div class="results-icon-wrap" aria-hidden="true">
-                  <img src="./assets/Ai Brain search - Iconly Pro.svg" alt="" style="width: 22px; height: 24px;" />
-                </div>
+              <div class="results-item-trigger">
+                <h3 class="results-item-title">Ясность и понимание</h3>
               </div>
-              <h3 class="results-item-title">Ясность и понимание</h3>
-              <p class="results-item-desc">Мы разберем вашу ситуацию по полочкам, найдем скрытые взаимосвязи и поймем, из-за чего возникает беспокойство, апатия или повторяющиеся сценарии в вашей жизни.</p>
+              <div class="results-item-body">
+                <p class="results-item-desc">Мы разберем вашу ситуацию по полочкам, найдем скрытые взаимосвязи и поймем, из-за чего возникает беспокойство, апатия или повторяющиеся сценарии в вашей жизни.</p>
+              </div>
             </article>
 
             <!-- Result Item 3 -->
             <article class="results-item">
               <span class="results-num">03</span>
-              <div class="results-item-header">
-                <span class="results-tag">План изменений</span>
-                <div class="results-icon-wrap" aria-hidden="true">
-                  <img src="./assets/Time Square - Iconly Pro.svg" alt="" style="width: 20px; height: 24px;" />
-                </div>
+              <div class="results-item-trigger">
+                <h3 class="results-item-title">Ориентиры совместного пути</h3>
               </div>
-              <h3 class="results-item-title">Ориентиры совместного пути</h3>
-              <p class="results-item-desc">Мы наметим терапевтические цели, периодичность встреч и методы работы, которые подходят именно вам, давая предсказуемость и надежный маршрут движения вперед.</p>
+              <div class="results-item-body">
+                <p class="results-item-desc">Мы наметим терапевтические цели, периодичность встреч и методы работы, которые подходят именно вам, давая предсказуемость и надежный маршрут движения вперед.</p>
+              </div>
             </article>
           </div>
         </div>
       </section>
 
+      <!-- Tariffs Section -->
+      <section class="tariffs" id="tariffs" aria-label="Стоимость и формат сессий">
+        <p class="section-script section-script-tariffs">Формат и стоимость</p>
+        <div class="tariffs-container">
+          <div class="tariff-card">
+            <div class="tariff-header">
+              <span class="tariff-badge">Индивидуально</span>
+              <h3 class="tariff-title">Индивидуальная консультация</h3>
+              <p class="tariff-desc">Регулярная индивидуальная терапия один на один, сфокусированная на ваших запросах и целях.</p>
+            </div>
+            <div class="tariff-price">
+              <span class="price-val">4 500 ₽</span>
+              <span class="price-period">/ 50 минут</span>
+            </div>
+            <ul class="tariff-features">
+              <li>Личные встречи (офлайн в Москве или онлайн по всему миру)</li>
+              <li>Индивидуальный терапевтический план и глубинная проработка</li>
+              <li>Безопасное, бережное пространство и полная конфиденциальность</li>
+            </ul>
+          </div>
+
+          <div class="tariff-card tariff-card--featured">
+            <div class="tariff-header">
+              <span class="tariff-badge">Рекомендую</span>
+              <h3 class="tariff-title">Пакет из 5 сессий</h3>
+              <p class="tariff-desc">Рекомендуемый формат для глубокой, последовательной работы и достижения устойчивых терапевтических изменений.</p>
+            </div>
+            <div class="tariff-price">
+              <span class="price-val">20 000 ₽</span>
+              <span class="price-period">/ 5 сессий</span>
+            </div>
+            <ul class="tariff-features">
+              <li>Стоимость одной сессии снижается до 4 000 ₽ (выгода 2 500 ₽)</li>
+              <li>Гарантированное закрепление удобного для вас времени в расписании</li>
+              <li>Возможность проходить терапию в стабильном, предсказуемом темпе</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
     </main>
-    <script src="./script.js"></script>
+    <script src="./script.js?v=4"></script>
   </body>
 </html>

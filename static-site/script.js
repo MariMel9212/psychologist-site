@@ -165,13 +165,6 @@ function syncStatsScene() {
     return;
   }
 
-  if (statsLocked) {
-    if (window.scrollY !== statsLockScrollY) {
-      window.scrollTo(0, statsLockScrollY);
-    }
-    return;
-  }
-
   const rect = stats.getBoundingClientRect();
   if (rect.top > 0) {
     statsProgress = 0;
@@ -517,39 +510,23 @@ function getResultsLockPoint() {
 
 function renderResultsCards(progress) {
   const items = Array.from(document.querySelectorAll('.results-item'));
-  const N = items.length;
+
+  let activeIndex = 0;
+  if (progress > 0.33 && progress <= 0.68) {
+    activeIndex = 1;
+  } else if (progress > 0.68) {
+    activeIndex = 2;
+  }
 
   items.forEach((item, index) => {
-    const targetProgress = index / (N - 1);
-    
-    let y = 0;
-    let opacity = 0;
-    let scale = 1;
-    let zIndex = index + 1;
-
-    if (progress === targetProgress) {
-      y = 0;
-      opacity = 1;
-      scale = 1;
-    } else if (progress < targetProgress) {
-      // Card is entering from the bottom
-      const segmentProgress = clamp((progress - (targetProgress - 0.5)) / 0.5);
-      const eased = easeInOutQuart(segmentProgress);
-      y = 300 * (1 - eased);
-      opacity = eased;
-      scale = 0.95 + 0.05 * eased;
+    item.classList.remove('active', 'collapsed', 'hidden');
+    if (index < activeIndex) {
+      item.classList.add('collapsed');
+    } else if (index === activeIndex) {
+      item.classList.add('active');
     } else {
-      // Card is exiting upwards
-      const segmentProgress = clamp((progress - targetProgress) / 0.5);
-      const eased = easeInOutQuart(segmentProgress);
-      y = -300 * eased;
-      opacity = 1 - eased;
-      scale = 1 - 0.05 * eased;
+      item.classList.add('hidden');
     }
-
-    item.style.transform = `translate3d(0, ${y}px, 0) scale(${scale})`;
-    item.style.opacity = opacity;
-    item.style.zIndex = zIndex;
   });
 }
 
@@ -557,12 +534,15 @@ function syncResultsCards() {
   const lockPoint = getResultsLockPoint();
 
   if (!lockPoint || window.innerWidth <= 860) {
-    Array.from(document.querySelectorAll('.results-item')).forEach((item) => {
-      item.style.transform = '';
-      item.style.opacity = '';
-      item.style.zIndex = '';
-    });
     return;
+  }
+
+  // If the user scrolls back up above the Results section, reset the completion state and progress
+  if (window.scrollY < lockPoint.stickyStart - 150) {
+    resultsProgress = 0;
+    resultsTargetProgress = 0;
+    resultsCompleted = false;
+    renderResultsCards(0);
   }
 
   if (!resultsLocked && !resultsCompleted) {
@@ -585,8 +565,8 @@ function handleResultsWheel(event) {
 
   const delta = event.deltaY;
   const cardRect = lockPoint.resultsCard.getBoundingClientRect();
-  const stickyTop = (window.innerHeight - 560) / 2;
-  const isSceneCentered = cardRect.top <= stickyTop + 2;
+  const stickyTop = (window.innerHeight - lockPoint.resultsCard.offsetHeight) / 2;
+  const isSceneCentered = cardRect.top <= stickyTop + 150;
   const isEnteringLock = delta > 0 && isSceneCentered && resultsTargetProgress < 1;
   const isLeavingBack = delta < 0 && resultsLocked && resultsTargetProgress <= 0;
   const shouldControlAnimation = !resultsCompleted && (resultsLocked || isEnteringLock);
@@ -604,7 +584,7 @@ function handleResultsWheel(event) {
 
   if (!resultsLocked) {
     resultsLocked = true;
-    resultsLockScrollY = window.scrollY;
+    resultsLockScrollY = Math.round(lockPoint.stickyStart); // Perfect absolute lock coordinate
     resultsTargetProgress = resultsProgress;
 
     if (resultsAnimationFrame) {
